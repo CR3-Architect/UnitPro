@@ -15,7 +15,6 @@ class SettingsScreen extends StatelessWidget {
     final surface = isDark ? AppColors.darkSurface : AppColors.lightSurface;
     final surfaceVar = isDark ? AppColors.darkSurfaceVar : AppColors.lightSurfaceVar;
     final themeUpdater = ThemeUpdater.of(context);
-    const themes = ['Dark', 'Light', 'AMOLED'];
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.darkBg : AppColors.lightBg,
@@ -29,54 +28,52 @@ class SettingsScreen extends StatelessWidget {
         children: [
           // ── Appearance ──
           _sectionHeader('APPEARANCE', sub),
-          const SizedBox(height: 8),
-          Container(
-            decoration: BoxDecoration(
-              color: surface,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: surfaceVar.withValues(alpha: 0.5)),
-            ),
-            child: Column(
-              children: [
-                ListTile(
-                  leading: Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      color: AppColors.accent.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Icon(Icons.palette_rounded, color: AppColors.accent, size: 20),
-                  ),
-                  title: Text('Theme', style: TextStyle(color: fg, fontSize: 15, fontWeight: FontWeight.w600)),
-                  subtitle: Text('Choose app appearance', style: TextStyle(color: sub, fontSize: 12)),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                  child: SegmentedButton<int>(
-                    segments: [
-                      for (int i = 0; i < themes.length; i++)
-                        ButtonSegment(value: i, label: Text(themes[i], style: const TextStyle(fontSize: 13))),
-                    ],
-                    selected: {themeUpdater.themeIndex},
-                    onSelectionChanged: (s) => themeUpdater.onThemeChanged(s.first),
-                    style: SegmentedButton.styleFrom(
-                      selectedBackgroundColor: AppColors.accent.withValues(alpha: 0.15),
-                      selectedForegroundColor: AppColors.accent,
-                      foregroundColor: sub,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-              ],
-            ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              _themeCard(
+                context,
+                index: 0,
+                label: 'Dark',
+                subtitle: 'Slate',
+                icon: Icons.dark_mode_rounded,
+                current: themeUpdater.themeIndex,
+                onTap: themeUpdater.onThemeChanged,
+                sub: sub,
+                fg: fg,
+              ),
+              const SizedBox(width: 10),
+              _themeCard(
+                context,
+                index: 1,
+                label: 'Light',
+                subtitle: 'Cool',
+                icon: Icons.light_mode_rounded,
+                current: themeUpdater.themeIndex,
+                onTap: themeUpdater.onThemeChanged,
+                sub: sub,
+                fg: fg,
+              ),
+              const SizedBox(width: 10),
+              _themeCard(
+                context,
+                index: 2,
+                label: 'AMOLED',
+                subtitle: 'Pure black',
+                icon: Icons.contrast_rounded,
+                current: themeUpdater.themeIndex,
+                onTap: themeUpdater.onThemeChanged,
+                sub: sub,
+                fg: fg,
+              ),
+            ],
           ),
 
-          const SizedBox(height: 20),
+          const SizedBox(height: 24),
 
-          // ── About ──
-          _sectionHeader('ABOUT', sub),
-          const SizedBox(height: 8),
+          // ── App ──
+          _sectionHeader('APP', sub),
+          const SizedBox(height: 10),
           Container(
             decoration: BoxDecoration(
               color: surface,
@@ -85,60 +82,143 @@ class SettingsScreen extends StatelessWidget {
             ),
             child: Column(
               children: [
-                ListTile(
-                  leading: Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(colors: [AppColors.accent, AppColors.accentDim]),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Icon(Icons.swap_horiz_rounded, color: Colors.black, size: 20),
-                  ),
-                  title: Text('UnitPro Studio', style: TextStyle(color: fg, fontSize: 15, fontWeight: FontWeight.w700)),
-                  subtitle: Text('v1.0.0', style: TextStyle(color: sub, fontSize: 12)),
-                ),
-                Divider(height: 1, color: surfaceVar.withValues(alpha: 0.5)),
-                _infoTile(Icons.category_rounded, '12 categories · 100+ units', sub),
-                Divider(height: 1, color: surfaceVar.withValues(alpha: 0.5)),
-                _infoTile(Icons.functions_rounded, '14 physical constants', sub),
-                Divider(height: 1, color: surfaceVar.withValues(alpha: 0.5)),
-                _infoTile(Icons.code_rounded, 'MIT License · Open Source', sub),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 20),
-
-          // ── Credits ──
-          _sectionHeader('CREDITS', sub),
-          const SizedBox(height: 8),
-          Container(
-            decoration: BoxDecoration(
-              color: surface,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: surfaceVar.withValues(alpha: 0.5)),
-            ),
-            child: Column(
-              children: [
-                _infoTile(Icons.person_rounded, 'Atiqullah · CR3-Architect', sub),
-                Divider(height: 1, color: surfaceVar.withValues(alpha: 0.5)),
-                _infoTile(Icons.link_rounded, 'github.com/CR3-Architect/UnitPro', sub),
-                Divider(height: 1, color: surfaceVar.withValues(alpha: 0.5)),
-                _infoTile(Icons.favorite_rounded, 'Pairs with CalcPro Studio', sub),
+                _tile(Icons.category_rounded, '15 categories', '120+ units across all categories', fg, sub),
+                Divider(height: 1, indent: 52, color: surfaceVar.withValues(alpha: 0.5)),
+                _tile(Icons.functions_rounded, 'Physical constants', '14 fundamental constants, tap to copy', fg, sub),
+                Divider(height: 1, indent: 52, color: surfaceVar.withValues(alpha: 0.5)),
+                _tile(Icons.swap_horiz_rounded, 'Smart conversion', 'Live results, formula display, swap', fg, sub),
               ],
             ),
           ),
 
           const SizedBox(height: 24),
 
+          // ── About ──
+          _sectionHeader('ABOUT', sub),
+          const SizedBox(height: 10),
+          Container(
+            decoration: BoxDecoration(
+              color: surface,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: surfaceVar.withValues(alpha: 0.5)),
+            ),
+            child: Column(
+              children: [
+                ListTile(
+                  leading: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(colors: [AppColors.accent, AppColors.accentDim]),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(Icons.swap_horiz_rounded, color: Colors.black, size: 22),
+                  ),
+                  title: Text('UnitPro Studio', style: TextStyle(color: fg, fontSize: 16, fontWeight: FontWeight.w700)),
+                  subtitle: Text('v1.0.0 · MIT License', style: TextStyle(color: sub, fontSize: 12)),
+                ),
+                Divider(height: 1, color: surfaceVar.withValues(alpha: 0.5)),
+                _actionTile(Icons.code_rounded, 'View on GitHub', () {
+                  _snack(context, 'github.com/CR3-Architect/UnitPro');
+                }, sub),
+                Divider(height: 1, indent: 52, color: surfaceVar.withValues(alpha: 0.5)),
+                _actionTile(Icons.favorite_rounded, 'Pairs with CalcPro Studio', () {
+                  _snack(context, 'Scientific calculator — 9 modes, free & open source');
+                }, sub),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 28),
+
           Center(
             child: Text(
-              'Made with Flutter',
+              'Made with Flutter · © 2026 Atiqullah',
               style: TextStyle(color: sub.withOpacity(0.4), fontSize: 12),
             ),
           ),
+          const SizedBox(height: 8),
         ],
+      ),
+    );
+  }
+
+  Widget _themeCard(
+    BuildContext context, {
+    required int index,
+    required String label,
+    required String subtitle,
+    required IconData icon,
+    required int current,
+    required ValueChanged<int> onTap,
+    required Color sub,
+    required Color fg,
+  }) {
+    final selected = index == current;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () {
+          HapticFeedback.selectionClick();
+          onTap(index);
+        },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeOut,
+          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+          decoration: BoxDecoration(
+            color: selected
+                ? AppColors.accent.withValues(alpha: 0.12)
+                : Theme.of(context).colorScheme.surface,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: selected ? AppColors.accent : sub.withOpacity(0.15),
+              width: selected ? 1.5 : 1,
+            ),
+            boxShadow: selected
+                ? [BoxShadow(color: AppColors.accent.withValues(alpha: 0.15), blurRadius: 12, offset: const Offset(0, 4))]
+                : null,
+          ),
+          child: Column(
+            children: [
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 250),
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: selected
+                      ? AppColors.accent
+                      : sub.withOpacity(0.08),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  icon,
+                  size: 22,
+                  color: selected ? Colors.black : sub,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                  color: selected ? AppColors.accent : fg,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                subtitle,
+                style: TextStyle(fontSize: 10.5, color: sub.withOpacity(0.5)),
+              ),
+              const SizedBox(height: 8),
+              AnimatedOpacity(
+                duration: const Duration(milliseconds: 200),
+                opacity: selected ? 1 : 0,
+                child: const Icon(Icons.check_circle_rounded, color: AppColors.accent, size: 18),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -158,11 +238,49 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  Widget _infoTile(IconData icon, String text, Color sub) {
+  Widget _tile(IconData icon, String title, String subtitle, Color fg, Color sub) {
     return ListTile(
       dense: true,
-      leading: Icon(icon, color: sub.withOpacity(0.6), size: 18),
-      title: Text(text, style: TextStyle(fontSize: 13, color: sub)),
+      leading: Container(
+        width: 36,
+        height: 36,
+        decoration: BoxDecoration(
+          color: AppColors.accent.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Icon(icon, color: AppColors.accent, size: 19),
+      ),
+      title: Text(title, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: fg)),
+      subtitle: Text(subtitle, style: TextStyle(fontSize: 12, color: sub.withOpacity(0.6))),
+    );
+  }
+
+  Widget _actionTile(IconData icon, String title, VoidCallback onTap, Color sub) {
+    return ListTile(
+      dense: true,
+      leading: Container(
+        width: 36,
+        height: 36,
+        decoration: BoxDecoration(
+          color: AppColors.accent.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Icon(icon, color: AppColors.accent, size: 19),
+      ),
+      title: Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.accent)),
+      trailing: Icon(Icons.chevron_right_rounded, color: sub.withOpacity(0.4), size: 20),
+      onTap: onTap,
+    );
+  }
+
+  void _snack(BuildContext context, String msg) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(msg, style: const TextStyle(fontSize: 13)),
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 2),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
     );
   }
 }

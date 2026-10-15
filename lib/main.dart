@@ -45,7 +45,12 @@ class _UnitProAppState extends State<UnitProApp> {
       builder: (context, child) => ThemeUpdater(
         themeIndex: _themeIndex,
         onThemeChanged: _setTheme,
-        child: child!,
+        child: AnimatedTheme(
+          data: Theme.of(context),
+          duration: const Duration(milliseconds: 400),
+          curve: Curves.easeInOutCubic,
+          child: child!,
+        ),
       ),
       home: const ConverterScreen(),
     );

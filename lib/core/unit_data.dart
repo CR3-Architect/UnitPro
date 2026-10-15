@@ -1,7 +1,9 @@
 /// Unit conversion data and logic
+import 'package:flutter/material.dart';
+
 class UnitCategory {
   final String name;
-  final String icon;
+  final IconData icon;
   final Map<String, double> units;
   const UnitCategory(this.name, this.icon, this.units);
 }
@@ -10,63 +12,82 @@ class UnitData {
   UnitData._();
 
   static const List<UnitCategory> categories = [
-    UnitCategory('Length', 'straighten', {
+    UnitCategory('Length', Icons.straighten_rounded, {
       'Meter': 1, 'Kilometer': 1000, 'Centimeter': 0.01, 'Millimeter': 0.001,
       'Micrometer': 1e-6, 'Nanometer': 1e-9, 'Mile': 1609.344, 'Yard': 0.9144,
       'Foot': 0.3048, 'Inch': 0.0254, 'Nautical Mile': 1852, 'Light Year': 9.4607e15,
       'Parsec': 3.0857e16, 'AU': 1.49598e11,
     }),
-    UnitCategory('Mass', 'fitness_center', {
+    UnitCategory('Mass', Icons.fitness_center_rounded, {
       'Kilogram': 1, 'Gram': 0.001, 'Milligram': 1e-6, 'Microgram': 1e-9,
       'Metric Ton': 1000, 'Pound': 0.453592, 'Ounce': 0.0283495,
       'Stone': 6.35029, 'US Ton': 907.185, 'Imperial Ton': 1016.05,
-      'Atomic Mass Unit': 1.66054e-27,
+      'Atomic Mass Unit': 1.66054e-27, 'Carat': 0.0002, 'Grain': 6.479891e-5,
+      'Troy Ounce': 0.0311035, 'Slug': 14.5939,
     }),
-    UnitCategory('Temperature', 'thermostat', {
+    UnitCategory('Temperature', Icons.thermostat_rounded, {
       'Celsius': 1, 'Fahrenheit': 1, 'Kelvin': 1, 'Rankine': 1,
     }),
-    UnitCategory('Time', 'schedule', {
+    UnitCategory('Time', Icons.schedule_rounded, {
       'Second': 1, 'Millisecond': 0.001, 'Microsecond': 1e-6, 'Nanosecond': 1e-9,
       'Minute': 60, 'Hour': 3600, 'Day': 86400, 'Week': 604800,
       'Month (30d)': 2592000, 'Year (365d)': 31536000, 'Decade': 315360000,
       'Century': 3153600000,
     }),
-    UnitCategory('Speed', 'speed', {
+    UnitCategory('Speed', Icons.speed_rounded, {
       'm/s': 1, 'km/h': 0.277778, 'mph': 0.44704, 'knot': 0.514444,
       'ft/s': 0.3048, 'Mach': 343, 'c': 299792458,
     }),
-    UnitCategory('Area', 'crop_square', {
+    UnitCategory('Area', Icons.crop_square_rounded, {
       'sq meter': 1, 'sq kilometer': 1e6, 'sq centimeter': 1e-4,
-      'Hectare': 10000, 'Acre': 4046.86, 'sq foot': 0.092903,
-      'sq inch': 6.4516e-4, 'sq mile': 2.59e6, 'sq yard': 0.836127,
+      'sq millimeter': 1e-6, 'sq micrometer': 1e-12,
+      'Hectare': 10000, 'Acre': 4046.86, 'Are': 100, 'Barn': 1e-28,
+      'sq foot': 0.092903, 'sq inch': 6.4516e-4, 'sq mile': 2.59e6,
+      'sq yard': 0.836127,
     }),
-    UnitCategory('Volume', 'water_drop', {
+    UnitCategory('Volume', Icons.water_drop_rounded, {
       'Liter': 1, 'Milliliter': 0.001, 'Cubic Meter': 1000,
       'Gallon (US)': 3.78541, 'Gallon (UK)': 4.54609, 'Quart (US)': 0.946353,
       'Pint (US)': 0.473176, 'Cup (US)': 0.236588, 'Fl Oz (US)': 0.0295735,
       'Tablespoon': 0.0147868, 'Teaspoon': 0.00492892, 'Cubic Foot': 28.3168,
+      'Cubic Inch': 0.0163871,
     }),
-    UnitCategory('Data', 'storage', {
+    UnitCategory('Data', Icons.storage_rounded, {
       'Bit': 1, 'Byte': 8, 'Kilobyte': 8192, 'Megabyte': 8388608,
       'Gigabyte': 8589934592, 'Terabyte': 8796093022208, 'Petabyte': 8.8e15,
       'Kibibyte': 8192, 'Mebibyte': 8388608, 'Gibibyte': 8.59e9,
     }),
-    UnitCategory('Energy', 'bolt', {
-      'Joule': 1, 'Kilojoule': 1000, 'Calorie': 4184, 'Kilocalorie': 4184000,
+    UnitCategory('Energy', Icons.bolt_rounded, {
+      'Joule': 1, 'Kilojoule': 1000, 'Megajoule': 1e6, 'Gigajoule': 1e9,
+      'Calorie': 4184, 'Kilocalorie': 4184000,
       'Watt-hour': 3600, 'Kilowatt-hour': 3.6e6, 'eV': 1.60218e-19,
-      'BTU': 1055.06, 'Foot-pound': 1.35582,
+      'BTU': 1055.06, 'Foot-pound': 1.35582, 'Erg': 1e-7, 'Therm': 1.0551e8,
     }),
-    UnitCategory('Pressure', 'compress', {
+    UnitCategory('Pressure', Icons.compress_rounded, {
       'Pascal': 1, 'Kilopascal': 1000, 'Bar': 100000, 'Atmosphere': 101325,
       'psi': 6894.76, 'mmHg': 133.322, 'Torr': 133.322, 'MPa': 1e6,
     }),
-    UnitCategory('Frequency', 'radio', {
+    UnitCategory('Frequency', Icons.radio_rounded, {
       'Hertz': 1, 'Kilohertz': 1000, 'Megahertz': 1e6, 'Gigahertz': 1e9,
       'Terahertz': 1e12, 'RPM': 1 / 60,
     }),
-    UnitCategory('Angle', 'rotate_right', {
+    UnitCategory('Angle', Icons.rotate_right_rounded, {
       'Degree': 1, 'Radian': 57.2958, 'Gradian': 0.9,
       'Arc Minute': 1 / 60, 'Arc Second': 1 / 3600, 'Turn': 360,
+    }),
+    UnitCategory('Power', Icons.electric_bolt_rounded, {
+      'Watt': 1, 'Kilowatt': 1000, 'Megawatt': 1e6, 'Horsepower': 745.699872,
+      'Metric Horsepower': 735.49875, 'BTU per Hour': 0.29307107,
+      'Erg per Second': 1e-7, 'Foot-pound/min': 0.016857,
+    }),
+    UnitCategory('Torque', Icons.sync_alt_rounded, {
+      'Newton-meter': 1, 'Kilonewton-meter': 1000, 'Foot-pound': 1.3558179,
+      'Inch-pound': 0.1129848, 'Dyne-meter': 1e-5,
+      'Kilogram-force Meter': 9.80665,
+    }),
+    UnitCategory('Fuel Economy', Icons.local_gas_station_rounded, {
+      'Kilometer/Liter': 1, 'Mile/Liter': 1.609344, 'Meter/Liter': 1000,
+      'Mile per Gallon (US)': 0.425144, 'Mile per Gallon (UK)': 0.354006,
     }),
   ];
 

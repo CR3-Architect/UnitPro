@@ -47,6 +47,7 @@ class _ConverterScreenState extends State<ConverterScreen> {
   }
 
   void _swap() {
+    HapticFeedback.selectionClick();
     setState(() {
       final t = _fromUnit;
       _fromUnit = _toUnit;
@@ -77,6 +78,36 @@ class _ConverterScreenState extends State<ConverterScreen> {
     );
   }
 
+  void _openUnitPicker(String side) {
+    final cat = UnitData.categories[_catIndex];
+    final current = side == 'from' ? _fromUnit : _toUnit;
+    HapticFeedback.selectionClick();
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (_) => _UnitPickerSheet(
+        title: side == 'from' ? 'Convert from' : 'Convert to',
+        categoryName: cat.name,
+        categoryIcon: cat.icon,
+        selected: current,
+        units: cat.units,
+        showFactors: cat.name != 'Temperature',
+        onPick: (u) {
+          Navigator.pop(context);
+          setState(() {
+            if (side == 'from') {
+              _fromUnit = u;
+            } else {
+              _toUnit = u;
+            }
+          });
+          _convert();
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -84,7 +115,6 @@ class _ConverterScreenState extends State<ConverterScreen> {
     final sub = isDark ? AppColors.darkOnSurface : AppColors.lightOnSurface;
     final surface = isDark ? AppColors.darkSurface : AppColors.lightSurface;
     final surfaceVar = isDark ? AppColors.darkSurfaceVar : AppColors.lightSurfaceVar;
-    final units = UnitData.categories[_catIndex].units.keys.toList();
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.darkBg : AppColors.lightBg,
@@ -114,9 +144,7 @@ class _ConverterScreenState extends State<ConverterScreen> {
         elevation: 0,
         actions: [
           IconButton(
-            onPressed: () async {
-              await Navigator.push(context, MaterialPageRoute(builder: (_) => const HistoryScreen()));
-            },
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HistoryScreen())),
             icon: const Icon(Icons.history_rounded, size: 21),
             tooltip: 'History',
           ),
@@ -145,6 +173,7 @@ class _ConverterScreenState extends State<ConverterScreen> {
                 final selected = i == _catIndex;
                 return GestureDetector(
                   onTap: () {
+                    HapticFeedback.selectionClick();
                     setState(() {
                       _catIndex = i;
                       _fromUnit = UnitData.categories[i].units.keys.first;
@@ -153,24 +182,35 @@ class _ConverterScreenState extends State<ConverterScreen> {
                     _convert();
                   },
                   child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 150),
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    duration: const Duration(milliseconds: 180),
+                    curve: Curves.easeOut,
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
                     decoration: BoxDecoration(
                       color: selected ? AppColors.accent : surface,
                       borderRadius: BorderRadius.circular(20),
+                      border: selected ? null : Border.all(color: surfaceVar.withValues(alpha: 0.6)),
                       boxShadow: selected
                           ? [BoxShadow(color: AppColors.accent.withValues(alpha: 0.3), blurRadius: 8, offset: const Offset(0, 2))]
                           : null,
                     ),
-                    child: Center(
-                      child: Text(
-                        UnitData.categories[i].name,
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          UnitData.categories[i].icon,
+                          size: 15,
                           color: selected ? Colors.black : sub,
                         ),
-                      ),
+                        const SizedBox(width: 6),
+                        Text(
+                          UnitData.categories[i].name,
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                            color: selected ? Colors.black : sub,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 );
@@ -216,10 +256,7 @@ class _ConverterScreenState extends State<ConverterScreen> {
 
           Row(
             children: [
-              Expanded(child: _dropdown('From', _fromUnit, units, surface, fg, sub, (v) {
-                setState(() => _fromUnit = v!);
-                _convert();
-              })),
+              _unitSelector('From', _fromUnit, () => _openUnitPicker('from'), surface, surfaceVar, fg, sub),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 10),
                 child: GestureDetector(
@@ -239,10 +276,7 @@ class _ConverterScreenState extends State<ConverterScreen> {
                   ),
                 ),
               ),
-              Expanded(child: _dropdown('To', _toUnit, units, surface, fg, sub, (v) {
-                setState(() => _toUnit = v!);
-                _convert();
-              })),
+              _unitSelector('To', _toUnit, () => _openUnitPicker('to'), surface, surfaceVar, fg, sub),
             ],
           ),
 
@@ -261,6 +295,8 @@ class _ConverterScreenState extends State<ConverterScreen> {
                 Text(
                   '${_inputCtrl.text} $_fromUnit',
                   style: TextStyle(fontSize: 14, color: sub.withOpacity(0.6)),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
                 ),
                 const SizedBox(height: 10),
                 Container(
@@ -273,6 +309,7 @@ class _ConverterScreenState extends State<ConverterScreen> {
                 ),
                 const SizedBox(height: 10),
                 FittedBox(
+                  fit: BoxFit.scaleDown,
                   child: Text(
                     UnitData.formatResult(_result),
                     style: const TextStyle(
@@ -285,14 +322,14 @@ class _ConverterScreenState extends State<ConverterScreen> {
                   ),
                 ),
                 const SizedBox(height: 6),
-                Text(_toUnit, style: TextStyle(fontSize: 14, color: sub.withOpacity(0.6))),
+                Text(_toUnit, style: TextStyle(fontSize: 14, color: sub.withOpacity(0.6)), overflow: TextOverflow.ellipsis, maxLines: 1),
                 const SizedBox(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    _actionBtn(Icons.copy_rounded, 'Copy', _copyResult, sub),
+                    _actionBtn(Icons.copy_rounded, 'Copy', _copyResult),
                     const SizedBox(width: 8),
-                    _actionBtn(Icons.share_rounded, 'Share', _shareResult, sub),
+                    _actionBtn(Icons.share_rounded, 'Share', _shareResult),
                   ],
                 ),
               ],
@@ -308,17 +345,15 @@ class _ConverterScreenState extends State<ConverterScreen> {
               color: surfaceVar.withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+            child: Wrap(
+              alignment: WrapAlignment.center,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 8,
               children: [
                 Icon(Icons.calculate_rounded, size: 14, color: sub.withOpacity(0.4)),
-                const SizedBox(width: 8),
-                Flexible(
-                  child: Text(
-                    _formula(),
-                    style: TextStyle(fontFamily: 'monospace', fontSize: 12, color: sub.withOpacity(0.6)),
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                Text(
+                  _formula(),
+                  style: TextStyle(fontFamily: 'monospace', fontSize: 12, color: sub.withOpacity(0.6)),
                 ),
               ],
             ),
@@ -337,7 +372,48 @@ class _ConverterScreenState extends State<ConverterScreen> {
     return '$v × ${f.toStringAsPrecision(6)} ÷ ${t.toStringAsPrecision(6)} = ${UnitData.formatResult(_result)}';
   }
 
-  Widget _actionBtn(IconData icon, String label, VoidCallback onTap, Color sub) {
+  Widget _unitSelector(String label, String unit, VoidCallback onTap, Color surface, Color surfaceVar, Color fg, Color sub) {
+    return Expanded(
+      child: Material(
+        color: surface,
+        borderRadius: BorderRadius.circular(14),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(14),
+          onTap: onTap,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: surfaceVar.withValues(alpha: 0.5)),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(label, style: TextStyle(fontSize: 11, color: sub.withOpacity(0.6))),
+                      const SizedBox(height: 2),
+                      Text(
+                        unit,
+                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: fg),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Icon(Icons.keyboard_arrow_down_rounded, color: sub.withOpacity(0.5), size: 20),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _actionBtn(IconData icon, String label, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -357,28 +433,170 @@ class _ConverterScreenState extends State<ConverterScreen> {
       ),
     );
   }
+}
 
-  Widget _dropdown(String label, String value, List<String> items, Color surface, Color fg, Color sub, ValueChanged<String?> onChanged) {
+/// Professional bottom-sheet unit picker
+class _UnitPickerSheet extends StatelessWidget {
+  final String title;
+  final String categoryName;
+  final IconData categoryIcon;
+  final String selected;
+  final Map<String, double> units;
+  final bool showFactors;
+  final ValueChanged<String> onPick;
+
+  const _UnitPickerSheet({
+    required this.title,
+    required this.categoryName,
+    required this.categoryIcon,
+    required this.selected,
+    required this.units,
+    required this.showFactors,
+    required this.onPick,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final fg = isDark ? AppColors.darkOnBg : AppColors.lightOnBg;
+    final sub = isDark ? AppColors.darkOnSurface : AppColors.lightOnSurface;
+    final surface = isDark ? AppColors.darkSurface : AppColors.lightSurface;
+    final entries = units.entries.toList();
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.68),
       decoration: BoxDecoration(
         color: surface,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: surface.withValues(alpha: 0.8)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
       ),
-      child: DropdownButtonFormField<String>(
-        value: value,
-        decoration: InputDecoration(
-          labelText: label,
-          labelStyle: TextStyle(color: sub.withOpacity(0.5), fontSize: 12),
-          border: InputBorder.none,
-          isDense: true,
+      child: SafeArea(
+        top: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 10),
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: sub.withOpacity(0.25),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 8, 12),
+              child: Row(
+                children: [
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: AppColors.accent.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(categoryIcon, color: AppColors.accent, size: 20),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: fg)),
+                        const SizedBox(height: 2),
+                        Text(
+                          '$categoryName · ${entries.length} units',
+                          style: TextStyle(fontSize: 12, color: sub.withOpacity(0.6)),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: Icon(Icons.close_rounded, color: sub.withOpacity(0.5), size: 22),
+                  ),
+                ],
+              ),
+            ),
+            Divider(height: 1, color: sub.withOpacity(0.08)),
+            Flexible(
+              child: ListView.separated(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                itemCount: entries.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 4),
+                itemBuilder: (_, i) {
+                  final name = entries[i].key;
+                  final factor = entries[i].value;
+                  final isSel = name == selected;
+                  return Material(
+                    color: isSel ? AppColors.accent.withValues(alpha: 0.10) : Colors.transparent,
+                    borderRadius: BorderRadius.circular(14),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(14),
+                      onTap: () => onPick(name),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(14),
+                          border: isSel
+                              ? Border.all(color: AppColors.accent.withValues(alpha: 0.5))
+                              : null,
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                name,
+                                style: TextStyle(
+                                  fontSize: 14.5,
+                                  fontWeight: isSel ? FontWeight.w700 : FontWeight.w500,
+                                  color: isSel ? AppColors.accent : fg,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            if (showFactors) ...[
+                              if (factor == 1)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.accent.withValues(alpha: 0.12),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: const Text(
+                                    'base',
+                                    style: TextStyle(
+                                      fontSize: 10.5,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.accent,
+                                    ),
+                                  ),
+                                )
+                              else
+                                Text(
+                                  '× ${UnitData.formatResult(factor)}',
+                                  style: TextStyle(
+                                    fontFamily: 'monospace',
+                                    fontSize: 11.5,
+                                    color: sub.withOpacity(0.6),
+                                  ),
+                                ),
+                            ],
+                            if (isSel) ...[
+                              const SizedBox(width: 8),
+                              const Icon(Icons.check_circle_rounded, color: AppColors.accent, size: 18),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 8),
+          ],
         ),
-        dropdownColor: surface,
-        style: TextStyle(fontSize: 14, color: fg, fontWeight: FontWeight.w600),
-        icon: Icon(Icons.keyboard_arrow_down_rounded, color: sub.withOpacity(0.5), size: 20),
-        items: items.map((u) => DropdownMenuItem(value: u, child: Text(u))).toList(),
-        onChanged: onChanged,
       ),
     );
   }
