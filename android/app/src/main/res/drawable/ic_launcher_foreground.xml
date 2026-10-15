@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Background -->
+    <path android:fillColor="#0D1117" android:pathData="M0,0 L108,0 L108,108 L0,108 Z"/>
+    <!-- Ruler body -->
+    <path android:fillColor="#F59E0B" android:pathData="M28,40 L80,40 C82.2,40 84,41.8 84,44 L84,64 C84,66.2 82.2,68 80,68 L28,68 C25.8,68 24,66.2 24,64 L24,44 C24,41.8 25.8,40 28,40 Z"/>
+    <!-- Ruler ticks -->
+    <path android:strokeColor="#0D1117" android:strokeWidth="2" android:strokeLineCap="round" android:pathData="M34,40 L34,50 M44,40 L44,54 M54,40 L54,50 M64,40 L64,54 M74,40 L74,50"/>
+    <!-- Arrows -->
+    <path android:strokeColor="#E6EDF3" android:strokeWidth="3" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M36,78 L72,78 M64,72 L72,78 L64,84"/>
+</vector>
