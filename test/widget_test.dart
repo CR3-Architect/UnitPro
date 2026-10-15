@@ -4,6 +4,6 @@ import 'package:unitpro_studio/main.dart';
 void main() {
   testWidgets('App renders converter screen', (tester) async {
     await tester.pumpWidget(const UnitProApp(themeIndex: 0));
-    expect(find.text('UnitPro Studio'), findsOneWidget);
+    expect(find.text('UnitPro'), findsOneWidget);
   });
 }

@@ -1,28 +1,36 @@
 import 'package:flutter/material.dart';
 
-/// Color tokens for UnitPro Studio
+/// Professional color tokens for UnitPro Studio
+/// Deep navy + amber accent — clean, modern, engineering-grade
 class AppColors {
   AppColors._();
 
+  // Accent — refined amber (not neon, not dull)
   static const Color accent = Color(0xFFF59E0B);
-  static const Color accentDim = Color(0xFFD97706);
+  static const Color accentDim = Color(0xFFB45309);
+  static const Color accentSoft = Color(0xFFFEF3C7);
 
-  static const Color darkBg = Color(0xFF0D1117);
-  static const Color darkSurface = Color(0xFF161B22);
-  static const Color darkSurfaceVar = Color(0xFF21262D);
-  static const Color darkOnBg = Color(0xFFE6EDF3);
-  static const Color darkOnSurface = Color(0xFFC9D1D9);
+  // Dark theme — deep navy-charcoal
+  static const Color darkBg = Color(0xFF0F172A);
+  static const Color darkSurface = Color(0xFF1E293B);
+  static const Color darkSurfaceVar = Color(0xFF334155);
+  static const Color darkOnBg = Color(0xFFF1F5F9);
+  static const Color darkOnSurface = Color(0xFF94A3B8);
 
-  static const Color lightBg = Color(0xFFF6F8FA);
+  // Light theme — cool white
+  static const Color lightBg = Color(0xFFF8FAFC);
   static const Color lightSurface = Color(0xFFFFFFFF);
-  static const Color lightSurfaceVar = Color(0xFFE1E4E8);
-  static const Color lightOnBg = Color(0xFF1F2328);
-  static const Color lightOnSurface = Color(0xFF24292F);
+  static const Color lightSurfaceVar = Color(0xFFE2E8F0);
+  static const Color lightOnBg = Color(0xFF0F172A);
+  static const Color lightOnSurface = Color(0xFF64748B);
 
+  // AMOLED
   static const Color amoledBg = Color(0xFF000000);
-  static const Color amoledSurface = Color(0xFF0A0A0A);
-  static const Color amoledSurfaceVar = Color(0xFF141414);
+  static const Color amoledSurface = Color(0xFF0C0C0C);
+  static const Color amoledSurfaceVar = Color(0xFF1A1A1A);
 
-  static const Color success = Color(0xFF3FB950);
-  static const Color error = Color(0xFFF85149);
+  // Semantic
+  static const Color success = Color(0xFF10B981);
+  static const Color error = Color(0xFFEF4444);
+  static const Color info = Color(0xFF3B82F6);
 }

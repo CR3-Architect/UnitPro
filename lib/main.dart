@@ -42,7 +42,12 @@ class _UnitProAppState extends State<UnitProApp> {
       themeMode: _themeIndex == 1 ? ThemeMode.light : ThemeMode.dark,
       theme: _lightTheme(),
       darkTheme: _themeIndex == 2 ? _amoledTheme() : _darkTheme(),
-      home: ThemeUpdater(themeIndex: _themeIndex, onThemeChanged: _setTheme, child: const ConverterScreen()),
+      builder: (context, child) => ThemeUpdater(
+        themeIndex: _themeIndex,
+        onThemeChanged: _setTheme,
+        child: child!,
+      ),
+      home: const ConverterScreen(),
     );
   }
 
@@ -51,12 +56,28 @@ class _UnitProAppState extends State<UnitProApp> {
       useMaterial3: true,
       brightness: Brightness.dark,
       scaffoldBackgroundColor: AppColors.darkBg,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: AppColors.accent,
-        brightness: Brightness.dark,
+      colorScheme: const ColorScheme.dark(
+        primary: AppColors.accent,
+        secondary: AppColors.accent,
         surface: AppColors.darkSurface,
+        error: AppColors.error,
+        onPrimary: Colors.black,
+        onSurface: AppColors.darkOnBg,
       ),
       appBarTheme: const AppBarTheme(backgroundColor: Colors.transparent, elevation: 0),
+      cardTheme: CardThemeData(color: AppColors.darkSurface, elevation: 0),
+      dividerTheme: const DividerThemeData(color: AppColors.darkSurfaceVar, thickness: 1),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: AppColors.darkSurface,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+      ),
+      dropdownMenuTheme: const DropdownMenuThemeData(
+        menuStyle: MenuStyle(backgroundColor: WidgetStatePropertyAll(AppColors.darkSurface)),
+      ),
     );
   }
 
@@ -65,12 +86,25 @@ class _UnitProAppState extends State<UnitProApp> {
       useMaterial3: true,
       brightness: Brightness.light,
       scaffoldBackgroundColor: AppColors.lightBg,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: AppColors.accent,
-        brightness: Brightness.light,
+      colorScheme: const ColorScheme.light(
+        primary: AppColors.accentDim,
+        secondary: AppColors.accent,
         surface: AppColors.lightSurface,
+        error: AppColors.error,
+        onPrimary: Colors.white,
+        onSurface: AppColors.lightOnBg,
       ),
       appBarTheme: const AppBarTheme(backgroundColor: Colors.transparent, elevation: 0),
+      cardTheme: CardThemeData(color: AppColors.lightSurface, elevation: 0),
+      dividerTheme: const DividerThemeData(color: AppColors.lightSurfaceVar, thickness: 1),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: AppColors.lightSurface,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+      ),
     );
   }
 
@@ -79,23 +113,31 @@ class _UnitProAppState extends State<UnitProApp> {
       useMaterial3: true,
       brightness: Brightness.dark,
       scaffoldBackgroundColor: AppColors.amoledBg,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: AppColors.accent,
-        brightness: Brightness.dark,
+      colorScheme: const ColorScheme.dark(
+        primary: AppColors.accent,
+        secondary: AppColors.accent,
         surface: AppColors.amoledSurface,
+        error: AppColors.error,
+        onPrimary: Colors.black,
+        onSurface: AppColors.darkOnBg,
       ),
       appBarTheme: const AppBarTheme(backgroundColor: Colors.transparent, elevation: 0),
+      cardTheme: CardThemeData(color: AppColors.amoledSurface, elevation: 0),
     );
   }
 }
 
-/// Inherited widget for theme switching from settings
+/// Available to ALL routes via MaterialApp wrapper
 class ThemeUpdater extends InheritedWidget {
   final int themeIndex;
   final ValueChanged<int> onThemeChanged;
   const ThemeUpdater({super.key, required this.themeIndex, required this.onThemeChanged, required super.child});
 
-  static ThemeUpdater of(BuildContext context) => context.dependOnInheritedWidgetOfExactType<ThemeUpdater>()!;
+  static ThemeUpdater of(BuildContext context) {
+    final t = context.dependOnInheritedWidgetOfExactType<ThemeUpdater>();
+    assert(t != null, 'ThemeUpdater not found in widget tree');
+    return t!;
+  }
 
   @override
   bool updateShouldNotify(ThemeUpdater oldWidget) => themeIndex != oldWidget.themeIndex;

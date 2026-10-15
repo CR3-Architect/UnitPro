@@ -13,6 +13,7 @@ class ConstantsScreen extends StatelessWidget {
     final fg = isDark ? AppColors.darkOnBg : AppColors.lightOnBg;
     final sub = isDark ? AppColors.darkOnSurface : AppColors.lightOnSurface;
     final surface = isDark ? AppColors.darkSurface : AppColors.lightSurface;
+    final surfaceVar = isDark ? AppColors.darkSurfaceVar : AppColors.lightSurfaceVar;
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.darkBg : AppColors.lightBg,
@@ -30,13 +31,14 @@ class ConstantsScreen extends StatelessWidget {
             margin: const EdgeInsets.only(bottom: 8),
             decoration: BoxDecoration(
               color: surface,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: surfaceVar.withValues(alpha: 0.5)),
             ),
             child: ListTile(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
               leading: Container(
-                width: 42,
-                height: 42,
+                width: 44,
+                height: 44,
                 decoration: BoxDecoration(
                   color: AppColors.accent.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(10),
@@ -53,7 +55,7 @@ class ConstantsScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              title: Text(c['name']!, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: fg)),
+              title: Text(c['name']!, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: fg)),
               subtitle: Text(
                 '${c['value']} ${c['unit']}',
                 style: TextStyle(fontFamily: 'monospace', fontSize: 12, color: sub.withOpacity(0.7)),
@@ -62,7 +64,12 @@ class ConstantsScreen extends StatelessWidget {
               onTap: () {
                 Clipboard.setData(ClipboardData(text: '${c['value']} ${c['unit']}'));
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Copied'), duration: Duration(seconds: 1)),
+                  SnackBar(
+                    content: const Text('Copied', style: TextStyle(fontSize: 13)),
+                    behavior: SnackBarBehavior.floating,
+                    duration: const Duration(seconds: 1),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
                 );
               },
             ),
