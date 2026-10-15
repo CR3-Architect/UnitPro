@@ -528,7 +528,7 @@ class _UnitPickerSheet extends StatelessWidget {
                   final factor = entries[i].value;
                   final isSel = name == selected;
                   return Material(
-                    color: isSel ? AppColors.accent.withValues(alpha: 0.10) : Colors.transparent,
+                    color: isSel ? surface.withValues(alpha: 0.5) : Colors.transparent,
                     borderRadius: BorderRadius.circular(14),
                     child: InkWell(
                       borderRadius: BorderRadius.circular(14),
@@ -538,7 +538,7 @@ class _UnitPickerSheet extends StatelessWidget {
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(14),
                           border: isSel
-                              ? Border.all(color: AppColors.accent.withValues(alpha: 0.5))
+                              ? Border.all(color: AppColors.accent.withValues(alpha: 0.35))
                               : null,
                         ),
                         child: Row(
@@ -549,42 +549,25 @@ class _UnitPickerSheet extends StatelessWidget {
                                 style: TextStyle(
                                   fontSize: 14.5,
                                   fontWeight: isSel ? FontWeight.w700 : FontWeight.w500,
-                                  color: isSel ? AppColors.accent : fg,
+                                  color: fg,
                                 ),
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
                             const SizedBox(width: 10),
-                            if (showFactors) ...[
-                              if (factor == 1)
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.accent.withValues(alpha: 0.12),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: const Text(
-                                    'base',
-                                    style: TextStyle(
-                                      fontSize: 10.5,
-                                      fontWeight: FontWeight.w700,
-                                      color: AppColors.accent,
-                                    ),
-                                  ),
-                                )
-                              else
-                                Text(
-                                  '× ${UnitData.formatResult(factor)}',
-                                  style: TextStyle(
-                                    fontFamily: 'monospace',
-                                    fontSize: 11.5,
-                                    color: sub.withOpacity(0.6),
-                                  ),
+                            if (showFactors && factor != 1) ...[
+                              Text(
+                                '× ${UnitData.formatResult(factor)}',
+                                style: TextStyle(
+                                  fontFamily: 'monospace',
+                                  fontSize: 11,
+                                  color: sub.withOpacity(0.45),
                                 ),
+                              ),
+                              const SizedBox(width: 6),
                             ],
                             if (isSel) ...[
-                              const SizedBox(width: 8),
-                              const Icon(Icons.check_circle_rounded, color: AppColors.accent, size: 18),
+                              const Icon(Icons.check_rounded, color: AppColors.accent, size: 18),
                             ],
                           ],
                         ),

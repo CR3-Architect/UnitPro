@@ -164,57 +164,55 @@ class SettingsScreen extends StatelessWidget {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 250),
           curve: Curves.easeOut,
-          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 6),
           decoration: BoxDecoration(
             color: selected
-                ? AppColors.accent.withValues(alpha: 0.12)
+                ? AppColors.accent.withValues(alpha: 0.10)
                 : Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: selected ? AppColors.accent : sub.withOpacity(0.15),
+              color: selected ? AppColors.accent.withValues(alpha: 0.6) : sub.withOpacity(0.12),
               width: selected ? 1.5 : 1,
             ),
-            boxShadow: selected
-                ? [BoxShadow(color: AppColors.accent.withValues(alpha: 0.15), blurRadius: 12, offset: const Offset(0, 4))]
-                : null,
           ),
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
               AnimatedContainer(
                 duration: const Duration(milliseconds: 250),
-                width: 44,
-                height: 44,
+                width: 40,
+                height: 40,
                 decoration: BoxDecoration(
-                  color: selected
-                      ? AppColors.accent
-                      : sub.withOpacity(0.08),
+                  color: selected ? AppColors.accent : sub.withValues(alpha: 0.08),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(
-                  icon,
-                  size: 22,
-                  color: selected ? Colors.black : sub,
-                ),
+                child: Icon(icon, size: 20, color: selected ? Colors.black : sub),
               ),
-              const SizedBox(height: 10),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                  color: selected ? AppColors.accent : fg,
+              const SizedBox(height: 8),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                    color: selected ? AppColors.accent : fg,
+                  ),
                 ),
               ),
               const SizedBox(height: 2),
-              Text(
-                subtitle,
-                style: TextStyle(fontSize: 10.5, color: sub.withOpacity(0.5)),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  subtitle,
+                  style: TextStyle(fontSize: 10, color: sub.withOpacity(0.5)),
+                ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
               AnimatedOpacity(
                 duration: const Duration(milliseconds: 200),
                 opacity: selected ? 1 : 0,
-                child: const Icon(Icons.check_circle_rounded, color: AppColors.accent, size: 18),
+                child: const Icon(Icons.check_rounded, color: AppColors.accent, size: 16),
               ),
             ],
           ),
