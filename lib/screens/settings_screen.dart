@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../core/app_colors.dart';
 import '../main.dart';
@@ -29,44 +30,22 @@ class SettingsScreen extends StatelessWidget {
           // ── Appearance ──
           _sectionHeader('APPEARANCE', sub),
           const SizedBox(height: 10),
-          Row(
-            children: [
-              _themeCard(
-                context,
-                index: 0,
-                label: 'Dark',
-                subtitle: 'Slate',
-                icon: Icons.dark_mode_rounded,
-                current: themeUpdater.themeIndex,
-                onTap: themeUpdater.onThemeChanged,
-                sub: sub,
-                fg: fg,
-              ),
-              const SizedBox(width: 10),
-              _themeCard(
-                context,
-                index: 1,
-                label: 'Light',
-                subtitle: 'Cool',
-                icon: Icons.light_mode_rounded,
-                current: themeUpdater.themeIndex,
-                onTap: themeUpdater.onThemeChanged,
-                sub: sub,
-                fg: fg,
-              ),
-              const SizedBox(width: 10),
-              _themeCard(
-                context,
-                index: 2,
-                label: 'AMOLED',
-                subtitle: 'Pure black',
-                icon: Icons.contrast_rounded,
-                current: themeUpdater.themeIndex,
-                onTap: themeUpdater.onThemeChanged,
-                sub: sub,
-                fg: fg,
-              ),
-            ],
+          Container(
+            decoration: BoxDecoration(
+              color: surface,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: surfaceVar.withValues(alpha: 0.5)),
+            ),
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              children: [
+                _themeCard(context, 0, 'Dark', 'Slate theme', Icons.dark_mode_rounded, themeUpdater, sub, fg, surfaceVar),
+                const SizedBox(width: 8),
+                _themeCard(context, 1, 'Light', 'Clean & bright', Icons.light_mode_rounded, themeUpdater, sub, fg, surfaceVar),
+                const SizedBox(width: 8),
+                _themeCard(context, 2, 'AMOLED', 'Pure black', Icons.contrast_rounded, themeUpdater, sub, fg, surfaceVar),
+              ],
+            ),
           ),
 
           const SizedBox(height: 24),
@@ -118,12 +97,16 @@ class SettingsScreen extends StatelessWidget {
                   subtitle: Text('v1.0.0 · MIT License', style: TextStyle(color: sub, fontSize: 12)),
                 ),
                 Divider(height: 1, color: surfaceVar.withValues(alpha: 0.5)),
-                _actionTile(Icons.code_rounded, 'View on GitHub', () {
-                  _snack(context, 'github.com/CR3-Architect/UnitPro');
+                _actionTile(Icons.person_rounded, 'Atiqullah · CR3-Architect', () {
+                  _openUrl(context, 'https://github.com/CR3-Architect');
+                }, sub),
+                Divider(height: 1, indent: 52, color: surfaceVar.withValues(alpha: 0.5)),
+                _actionTile(Icons.link_rounded, 'github.com/CR3-Architect/UnitPro', () {
+                  _openUrl(context, 'https://github.com/CR3-Architect/UnitPro');
                 }, sub),
                 Divider(height: 1, indent: 52, color: surfaceVar.withValues(alpha: 0.5)),
                 _actionTile(Icons.favorite_rounded, 'Pairs with CalcPro Studio', () {
-                  _snack(context, 'Scientific calculator — 9 modes, free & open source');
+                  _openUrl(context, 'https://github.com/CR3-Architect/CalcPro');
                 }, sub),
               ],
             ),
@@ -143,76 +126,58 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  Widget _themeCard(
-    BuildContext context, {
-    required int index,
-    required String label,
-    required String subtitle,
-    required IconData icon,
-    required int current,
-    required ValueChanged<int> onTap,
-    required Color sub,
-    required Color fg,
-  }) {
-    final selected = index == current;
+  Widget _themeCard(BuildContext context, int index, String label, String subtitle, IconData icon,
+      ThemeUpdater themeUpdater, Color sub, Color fg, Color surfaceVar) {
+    final selected = index == themeUpdater.themeIndex;
     return Expanded(
       child: GestureDetector(
         onTap: () {
           HapticFeedback.selectionClick();
-          onTap(index);
+          themeUpdater.onThemeChanged(index);
         },
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 250),
           curve: Curves.easeOut,
-          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 6),
+          padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 10),
           decoration: BoxDecoration(
-            color: selected
-                ? AppColors.accent.withValues(alpha: 0.10)
-                : Theme.of(context).colorScheme.surface,
-            borderRadius: BorderRadius.circular(16),
+            color: selected ? AppColors.accent.withValues(alpha: 0.10) : Colors.transparent,
+            borderRadius: BorderRadius.circular(14),
             border: Border.all(
-              color: selected ? AppColors.accent.withValues(alpha: 0.6) : sub.withOpacity(0.12),
+              color: selected ? AppColors.accent.withValues(alpha: 0.6) : surfaceVar.withValues(alpha: 0.4),
               width: selected ? 1.5 : 1,
             ),
           ),
           child: Column(
-            mainAxisSize: MainAxisSize.min,
             children: [
               AnimatedContainer(
                 duration: const Duration(milliseconds: 250),
-                width: 40,
-                height: 40,
+                width: 42,
+                height: 42,
                 decoration: BoxDecoration(
                   color: selected ? AppColors.accent : sub.withValues(alpha: 0.08),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(icon, size: 20, color: selected ? Colors.black : sub),
+                child: Icon(icon, size: 22, color: selected ? Colors.black : sub),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
+                  color: selected ? AppColors.accent : fg,
+                ),
+              ),
+              const SizedBox(height: 3),
+              Text(
+                subtitle,
+                style: TextStyle(fontSize: 10.5, color: sub.withOpacity(0.5)),
               ),
               const SizedBox(height: 8),
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                    color: selected ? AppColors.accent : fg,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 2),
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(
-                  subtitle,
-                  style: TextStyle(fontSize: 10, color: sub.withOpacity(0.5)),
-                ),
-              ),
-              const SizedBox(height: 6),
               AnimatedOpacity(
                 duration: const Duration(milliseconds: 200),
                 opacity: selected ? 1 : 0,
-                child: const Icon(Icons.check_rounded, color: AppColors.accent, size: 16),
+                child: const Icon(Icons.check_circle_rounded, color: AppColors.accent, size: 18),
               ),
             ],
           ),
@@ -266,19 +231,26 @@ class SettingsScreen extends StatelessWidget {
         child: Icon(icon, color: AppColors.accent, size: 19),
       ),
       title: Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.accent)),
-      trailing: Icon(Icons.chevron_right_rounded, color: sub.withOpacity(0.4), size: 20),
+      trailing: Icon(Icons.open_in_new_rounded, color: sub.withOpacity(0.4), size: 18),
       onTap: onTap,
     );
   }
 
-  void _snack(BuildContext context, String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(msg, style: const TextStyle(fontSize: 13)),
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 2),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-    );
+  Future<void> _openUrl(BuildContext context, String url) async {
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Could not open $url', style: const TextStyle(fontSize: 13)),
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 2),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ),
+        );
+      }
+    }
   }
 }
