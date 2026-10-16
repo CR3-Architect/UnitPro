@@ -84,6 +84,7 @@ class _ConverterScreenState extends State<ConverterScreen> {
     });
     _saveSelection();
     _convert();
+    _saveHistory();
   }
 
   void _saveHistory() {
@@ -157,6 +158,7 @@ class _ConverterScreenState extends State<ConverterScreen> {
           });
           _saveSelection();
           _convert();
+          _saveHistory();
         },
         onToggleFavorite: _toggleFavorite,
       ),
@@ -236,6 +238,7 @@ class _ConverterScreenState extends State<ConverterScreen> {
                     });
                     _saveSelection();
                     _convert();
+                    _saveHistory();
                   },
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 180),
