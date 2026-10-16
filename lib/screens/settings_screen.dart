@@ -94,7 +94,7 @@ class SettingsScreen extends StatelessWidget {
                     child: const Icon(Icons.swap_horiz_rounded, color: Colors.black, size: 22),
                   ),
                   title: Text('UnitPro Studio', style: TextStyle(color: fg, fontSize: 16, fontWeight: FontWeight.w700)),
-                  subtitle: Text('v1.0.0 · MIT License', style: TextStyle(color: sub, fontSize: 12)),
+                  subtitle: Text('v1.1.0 · MIT License', style: TextStyle(color: sub, fontSize: 12)),
                 ),
                 Divider(height: 1, color: surfaceVar.withValues(alpha: 0.5)),
                 _actionTile(Icons.person_rounded, 'Atiqullah · CR3-Architect', () {

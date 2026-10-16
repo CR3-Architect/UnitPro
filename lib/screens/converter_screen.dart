@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../core/app_colors.dart';
+import '../core/prefs.dart';
 import '../core/unit_data.dart';
 import 'constants_screen.dart';
 import 'history_screen.dart';
@@ -21,12 +22,14 @@ class _ConverterScreenState extends State<ConverterScreen> {
   String _toUnit = '';
   final _inputCtrl = TextEditingController(text: '1');
   double _result = 0;
+  Map<String, List<String>> _favorites = {};
 
   @override
   void initState() {
     super.initState();
     _fromUnit = UnitData.categories[0].units.keys.first;
     _toUnit = UnitData.categories[0].units.keys.last;
+    _restore();
     _convert();
   }
 
@@ -34,6 +37,32 @@ class _ConverterScreenState extends State<ConverterScreen> {
   void dispose() {
     _inputCtrl.dispose();
     super.dispose();
+  }
+
+  Future<void> _restore() async {
+    final last = await Prefs.loadLastSelection();
+    if (last != null && mounted) {
+      final i = last[0] as int;
+      final f = last[1] as String;
+      final t = last[2] as String;
+      if (i < UnitData.categories.length) {
+        final cat = UnitData.categories[i];
+        if (cat.units.containsKey(f) && cat.units.containsKey(t)) {
+          setState(() {
+            _catIndex = i;
+            _fromUnit = f;
+            _toUnit = t;
+          });
+          _convert();
+        }
+      }
+    }
+    final favs = await Prefs.loadFavorites();
+    if (mounted) setState(() => _favorites = favs);
+  }
+
+  void _saveSelection() {
+    Prefs.saveLastSelection(_catIndex, _fromUnit, _toUnit);
   }
 
   void _convert() {
@@ -53,11 +82,19 @@ class _ConverterScreenState extends State<ConverterScreen> {
       _fromUnit = _toUnit;
       _toUnit = t;
     });
+    _saveSelection();
     _convert();
+  }
+
+  void _saveHistory() {
+    final v = _inputCtrl.text;
+    final entry = '$v $_fromUnit = ${UnitData.formatResult(_result)} $_toUnit';
+    Prefs.addHistory(entry);
   }
 
   void _copyResult() {
     Clipboard.setData(ClipboardData(text: UnitData.formatResult(_result)));
+    _saveHistory();
     _snack('Result copied');
   }
 
@@ -65,6 +102,21 @@ class _ConverterScreenState extends State<ConverterScreen> {
     Share.share(
       '${_inputCtrl.text} $_fromUnit = ${UnitData.formatResult(_result)} $_toUnit\nvia UnitPro Studio',
     );
+    _saveHistory();
+  }
+
+  void _toggleFavorite(String unit) {
+    HapticFeedback.lightImpact();
+    setState(() {
+      final catName = UnitData.categories[_catIndex].name;
+      final list = _favorites.putIfAbsent(catName, () => []);
+      if (list.contains(unit)) {
+        list.remove(unit);
+      } else {
+        list.add(unit);
+      }
+    });
+    Prefs.saveFavorites(_favorites);
   }
 
   void _snack(String msg) {
@@ -93,6 +145,7 @@ class _ConverterScreenState extends State<ConverterScreen> {
         selected: current,
         units: cat.units,
         showFactors: cat.name != 'Temperature',
+        favorites: Set.of(_favorites[cat.name] ?? const []),
         onPick: (u) {
           Navigator.pop(context);
           setState(() {
@@ -102,8 +155,10 @@ class _ConverterScreenState extends State<ConverterScreen> {
               _toUnit = u;
             }
           });
+          _saveSelection();
           _convert();
         },
+        onToggleFavorite: _toggleFavorite,
       ),
     );
   }
@@ -179,6 +234,7 @@ class _ConverterScreenState extends State<ConverterScreen> {
                       _fromUnit = UnitData.categories[i].units.keys.first;
                       _toUnit = UnitData.categories[i].units.keys.last;
                     });
+                    _saveSelection();
                     _convert();
                   },
                   child: AnimatedContainer(
@@ -435,15 +491,17 @@ class _ConverterScreenState extends State<ConverterScreen> {
   }
 }
 
-/// Professional bottom-sheet unit picker
-class _UnitPickerSheet extends StatelessWidget {
+/// Professional bottom-sheet unit picker with search + favorites
+class _UnitPickerSheet extends StatefulWidget {
   final String title;
   final String categoryName;
   final IconData categoryIcon;
   final String selected;
   final Map<String, double> units;
   final bool showFactors;
+  final Set<String> favorites;
   final ValueChanged<String> onPick;
+  final ValueChanged<String> onToggleFavorite;
 
   const _UnitPickerSheet({
     required this.title,
@@ -452,8 +510,39 @@ class _UnitPickerSheet extends StatelessWidget {
     required this.selected,
     required this.units,
     required this.showFactors,
+    required this.favorites,
     required this.onPick,
+    required this.onToggleFavorite,
   });
+
+  @override
+  State<_UnitPickerSheet> createState() => _UnitPickerSheetState();
+}
+
+class _UnitPickerSheetState extends State<_UnitPickerSheet> {
+  final _searchCtrl = TextEditingController();
+  String _query = '';
+  late final Set<String> _favs = Set.of(widget.favorites);
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
+  List<MapEntry<String, double>> _filtered() {
+    final entries = widget.units.entries.where((e) {
+      if (_query.isEmpty) return true;
+      return e.key.toLowerCase().contains(_query);
+    }).toList();
+    entries.sort((a, b) {
+      final fa = _favs.contains(a.key) ? 0 : 1;
+      final fb = _favs.contains(b.key) ? 0 : 1;
+      if (fa != fb) return fa - fb;
+      return 0;
+    });
+    return entries;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -461,10 +550,10 @@ class _UnitPickerSheet extends StatelessWidget {
     final fg = isDark ? AppColors.darkOnBg : AppColors.lightOnBg;
     final sub = isDark ? AppColors.darkOnSurface : AppColors.lightOnSurface;
     final surface = isDark ? AppColors.darkSurface : AppColors.lightSurface;
-    final entries = units.entries.toList();
+    final entries = _filtered();
 
     return Container(
-      constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.68),
+      constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.72),
       decoration: BoxDecoration(
         color: surface,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
@@ -484,7 +573,7 @@ class _UnitPickerSheet extends StatelessWidget {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 8, 12),
+              padding: const EdgeInsets.fromLTRB(20, 16, 8, 4),
               child: Row(
                 children: [
                   Container(
@@ -494,17 +583,17 @@ class _UnitPickerSheet extends StatelessWidget {
                       color: AppColors.accent.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: Icon(categoryIcon, color: AppColors.accent, size: 20),
+                    child: Icon(widget.categoryIcon, color: AppColors.accent, size: 20),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: fg)),
+                        Text(widget.title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: fg)),
                         const SizedBox(height: 2),
                         Text(
-                          '$categoryName · ${entries.length} units',
+                          '${widget.categoryName} · ${widget.units.length} units',
                           style: TextStyle(fontSize: 12, color: sub.withOpacity(0.6)),
                         ),
                       ],
@@ -517,66 +606,125 @@ class _UnitPickerSheet extends StatelessWidget {
                 ],
               ),
             ),
-            Divider(height: 1, color: sub.withOpacity(0.08)),
-            Flexible(
-              child: ListView.separated(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                itemCount: entries.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 4),
-                itemBuilder: (_, i) {
-                  final name = entries[i].key;
-                  final factor = entries[i].value;
-                  final isSel = name == selected;
-                  return Material(
-                    color: isSel ? surface.withValues(alpha: 0.5) : Colors.transparent,
-                    borderRadius: BorderRadius.circular(14),
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(14),
-                      onTap: () => onPick(name),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(14),
-                          border: isSel
-                              ? Border.all(color: AppColors.accent.withValues(alpha: 0.35))
-                              : null,
-                        ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                name,
-                                style: TextStyle(
-                                  fontSize: 14.5,
-                                  fontWeight: isSel ? FontWeight.w700 : FontWeight.w500,
-                                  color: fg,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            if (showFactors && factor != 1) ...[
-                              Text(
-                                '× ${UnitData.formatResult(factor)}',
-                                style: TextStyle(
-                                  fontFamily: 'monospace',
-                                  fontSize: 11,
-                                  color: sub.withOpacity(0.45),
-                                ),
-                              ),
-                              const SizedBox(width: 6),
-                            ],
-                            if (isSel) ...[
-                              const Icon(Icons.check_rounded, color: AppColors.accent, size: 18),
-                            ],
-                          ],
-                        ),
-                      ),
-                    ),
-                  );
-                },
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 4),
+              child: TextField(
+                controller: _searchCtrl,
+                onChanged: (v) => setState(() => _query = v.trim().toLowerCase()),
+                style: TextStyle(fontSize: 14, color: fg),
+                decoration: InputDecoration(
+                  hintText: 'Search units...',
+                  hintStyle: TextStyle(fontSize: 13.5, color: sub.withOpacity(0.4)),
+                  prefixIcon: Icon(Icons.search_rounded, color: sub.withOpacity(0.4), size: 20),
+                  suffixIcon: _query.isNotEmpty
+                      ? IconButton(
+                          onPressed: () {
+                            _searchCtrl.clear();
+                            setState(() => _query = '');
+                          },
+                          icon: Icon(Icons.close_rounded, color: sub.withOpacity(0.4), size: 18),
+                        )
+                      : null,
+                  isDense: true,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                ),
               ),
             ),
+            Divider(height: 1, color: sub.withOpacity(0.08)),
+            if (entries.isEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 40),
+                child: Column(
+                  children: [
+                    Icon(Icons.search_off_rounded, size: 36, color: sub.withOpacity(0.3)),
+                    const SizedBox(height: 10),
+                    Text('No units match "${_searchCtrl.text}"', style: TextStyle(fontSize: 13, color: sub.withOpacity(0.5))),
+                  ],
+                ),
+              )
+            else
+              Flexible(
+                child: ListView.separated(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  itemCount: entries.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 4),
+                  itemBuilder: (_, i) {
+                    final name = entries[i].key;
+                    final factor = entries[i].value;
+                    final isSel = name == widget.selected;
+                    final isFav = _favs.contains(name);
+                    return Material(
+                      color: isSel ? surface.withValues(alpha: 0.5) : Colors.transparent,
+                      borderRadius: BorderRadius.circular(14),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(14),
+                        onTap: () => widget.onPick(name),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 13),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(14),
+                            border: isSel
+                                ? Border.all(color: AppColors.accent.withValues(alpha: 0.35))
+                                : null,
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  name,
+                                  style: TextStyle(
+                                    fontSize: 14.5,
+                                    fontWeight: isSel ? FontWeight.w700 : FontWeight.w500,
+                                    color: fg,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              if (widget.showFactors && factor != 1) ...[
+                                Text(
+                                  '× ${UnitData.formatResult(factor)}',
+                                  style: TextStyle(
+                                    fontFamily: 'monospace',
+                                    fontSize: 11,
+                                    color: sub.withOpacity(0.45),
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                              ],
+                              GestureDetector(
+                                behavior: HitTestBehavior.opaque,
+                                onTap: () {
+                                  setState(() {
+                                    if (_favs.contains(name)) {
+                                      _favs.remove(name);
+                                    } else {
+                                      _favs.add(name);
+                                    }
+                                  });
+                                  widget.onToggleFavorite(name);
+                                },
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                                  child: Icon(
+                                    isFav ? Icons.star_rounded : Icons.star_border_rounded,
+                                    size: 18,
+                                    color: isFav ? AppColors.accent : sub.withOpacity(0.35),
+                                  ),
+                                ),
+                              ),
+                              if (isSel) ...[
+                                const SizedBox(width: 2),
+                                const Icon(Icons.check_rounded, color: AppColors.accent, size: 18),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
             const SizedBox(height: 8),
           ],
         ),
