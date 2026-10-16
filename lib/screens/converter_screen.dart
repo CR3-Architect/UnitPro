@@ -196,7 +196,7 @@ class _ConverterScreenState extends State<ConverterScreen> {
             const Text('UnitPro', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18)),
           ],
         ),
-        centerTitle: true,
+        centerTitle: false,
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
